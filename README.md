@@ -25,7 +25,7 @@ Modify IAM Role of EC2 instance for Cloud9 environment
 Run commands below on Cloud9 Terminal to clone this lab repository and bootstrap the lab:
 
 ```
-git clone https://github.com/phonghuule/eks-2048-game.git
+git clone --branch develop https://github.com/MamNonDevOps/eks-2048-game.git
 cd eks-2048-game/setup
 ./bootstrap.sh
 ```
