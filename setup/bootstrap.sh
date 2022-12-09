@@ -1,7 +1,7 @@
 #!/bin/bash
 
 EKS_CLUSTER_NAME=eks-alb-2048game
-FARGATE_PROFILE=game2048
+FARGATE_PROFILE=game-2048
 
 # Sync time
 sudo service ntpd stop
@@ -68,7 +68,7 @@ if [ "$REGION" == "us-east-1" ]; then
     ZONES="--zones=$AZs"
 fi
 
-eksctl create cluster --ssh-access --name=$EKS_CLUSTER_NAME $ZONES --version 1.21 --fargate
+eksctl create cluster --ssh-access --name=$EKS_CLUSTER_NAME $ZONES --version 1.24 --fargate
 
 # To allow the cluster to use AWS Identity and Access Management (IAM) for service accounts
 
@@ -83,6 +83,8 @@ if [ "$POLICY_ARN" == "" ]; then
 
     POLICY_ARN=$(aws iam list-policies --query "Policies[?PolicyName=='ALBIngressControllerIAMPolicy'].Arn" --output text)
 fi
+
+echo; echo "Install IAM service account"
 
 eksctl create iamserviceaccount \
     --name aws-load-balancer-controller \
@@ -115,3 +117,23 @@ helm repo update
 echo; echo "Install the TargetGroupBinding custom resource definitions"
 
 kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
+
+VPC_ID=$(aws eks describe-cluster --name $EKS_CLUSTER_NAME --query cluster.resourcesVpcConfig.vpcId --output text)
+
+echo; echo "Install the Helm chart"
+
+helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
+    --set clusterName=$EKS_CLUSTER_NAME \
+    --set serviceAccount.create=false \
+    --set region=$REGION \
+    --set vpcId=$VPC_ID \
+    --set serviceAccount.name=aws-load-balancer-controller \
+    -n kube-system
+
+echo; echo "Deploy the game 2048"
+
+kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/examples/2048/2048_full.yaml
+
+export FARGATE_GAME_2048=$(kubectl get ingress/ingress-2048 -n game-2048 -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
+
+echo "http://${FARGATE_GAME_2048}"
