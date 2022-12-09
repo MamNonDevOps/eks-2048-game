@@ -132,7 +132,11 @@ helm install aws-load-balancer-controller eks/aws-load-balancer-controller \
 
 echo; echo "Deploy the game 2048"
 
+sleep 60
+
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/examples/2048/2048_full.yaml
+
+sleep 60
 
 kubectl get ingress/ingress-2048 -n game-2048
 
