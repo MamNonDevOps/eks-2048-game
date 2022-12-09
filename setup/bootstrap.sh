@@ -134,6 +134,8 @@ echo; echo "Deploy the game 2048"
 
 kubectl apply -f https://raw.githubusercontent.com/kubernetes-sigs/aws-load-balancer-controller/main/docs/examples/2048/2048_full.yaml
 
+kubectl get ingress/ingress-2048 -n game-2048
+
 export FARGATE_GAME_2048=$(kubectl get ingress/ingress-2048 -n game-2048 -o jsonpath='{.status.loadBalancer.ingress[0].hostname}')
 
 echo "http://${FARGATE_GAME_2048}"
