@@ -102,16 +102,16 @@ source ~/.bash_profile
 
 echo; echo "Create Fargate profile"
 
-eksctl create fargateprofile  --cluster $EKS_CLUSTER_NAME --name $FARGATE_PROFILE --namespace $FARGATE_PROFILE
+eksctl create fargateprofile \
+    --cluster $EKS_CLUSTER_NAME \
+    --name $FARGATE_PROFILE \
+    --namespace $FARGATE_PROFILE
 
-
-echo; echo "Created Fargate profile $FARGATE_PROFILE"
+echo; echo "Add the Amazon EKS chart repo to Helm"
 
 helm repo add eks https://aws.github.io/eks-charts
 helm repo update
 
-echo; echo "Added the Amazon EKS chart repo to Helm"
+echo; echo "Install the TargetGroupBinding custom resource definitions"
 
 kubectl apply -k "github.com/aws/eks-charts/stable/aws-load-balancer-controller//crds?ref=master"
-
-echo; echo "Installed the TargetGroupBinding custom resource definitions"
